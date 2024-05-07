@@ -1,0 +1,6 @@
+.swiper-pagination-progressbar-fill{background-color: currentColor;}
+
+.swiper-pagination-progressbar-fill {background-color: currentColor !important; height: 1px !important;width: 100% !important;transform-origin: left center !important;}
+[swiper-progress-bar]{position: relative !important;}
+
+.swiper-button-disabled{opacity: 0.4; pointer-events: none;}
