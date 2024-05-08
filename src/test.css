@@ -1,0 +1,14 @@
+:root{
+    --ease:cubic-bezier(.22,.6,.36,1); /* Power 3 */
+    --ease2:cubic-bezier(.87,0,.13,1); /* inOut Expo */
+    }
+    
+[data-anim],[data-stagger]>*,.line{transition:opacity 1.25s var(--ease),transform 1.25s var(--ease)}
+html:not(.ready) [data-anim],html:not(.ready) [data-stagger]>*{opacity:0;transform:translate3d(0,1rem,0)}
+html:not(.ready) [data-anim="2"],html:not(.ready) .line,.transitioning .project-header h1{transform:translate3d(0,100%,0)}
+[data-delay="1"]{transition-delay:.2s}
+[data-delay="2"]{transition-delay:.4s}
+[data-delay="3"]{transition-delay:.6s}
+[data-delay="4"]{transition-delay:.8s}
+
+

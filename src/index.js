@@ -1,20 +1,154 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import barba from '@barba/core';
 import barbaPrefetch from '@barba/prefetch';
 import { restartWebflow } from '@finsweet/ts-utils';
 import Lenis from '@studio-freight/lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import SplitType from 'split-type';
 barba.use(barbaPrefetch);
 gsap.registerPlugin(ScrollTrigger);
 gsap.config({
   nullTargetWarn: false,
 });
 gsap.defaults({
-  ease: 'power3.out',
+  ease: 'cubic-bezier(.22,.6,.36,1)',
 });
 let lenis;
+const html = document.documentElement;
+function handleLoading() {
+  const loading = document.querySelector('.loader');
+  if (!loading) {
+    return;
+  }
+  function homeHeroAnim(delay) {
+    let heroAnimTL = gsap.timeline({ delay: delay });
+    heroAnimTL.fromTo(
+      '[loading-anim]',
+      {
+        y: '1rem',
+        opacity: 0,
+      },
+      {
+        y: '0rem',
+        opacity: 1,
+        stagger: 0.25,
+        duration: 1,
+      }
+    );
+    html.classList.add('ready');
+  }
+  function playAnimation() {
+    let lt = gsap.timeline();
+    lt.from(loading.querySelector('[count-up-load]'), {
+      textContent: 0, // start from 0
+      duration: 3,
+      snap: { textContent: 1 }, // increment by 1
+    })
+      .to(loading, {
+        duration: 1,
+        opacity: 0,
+        onStart: () => {
+          window.scrollTo(0, 0);
+        },
+      })
+      .then(() => {
+        loading.style.display = 'none';
+        homeHeroAnim(0);
+      });
+  }
+
+  if (!sessionStorage.getItem('visited')) {
+    loading.style.display = 'flex';
+    playAnimation(0);
+    sessionStorage.setItem('visited', 'true');
+  } else {
+    loading.style.display = 'none';
+    homeHeroAnim(1);
+  }
+}
+//
+
+function handleGlobalAnimation() {
+  console.log('asdasdasdasdasdasdasd');
+  // Animate Stagger Elements
+  let staggerElements = document.querySelectorAll('[anim-stagger]');
+  if (staggerElements.length > 0) {
+    staggerElements.forEach((element) => {
+      animateStagger(element);
+    });
+  }
+  // GSAP Stagger Animation Function
+  function animateStagger(element, children, opacityValue) {
+    if (children == null) {
+      children = element.getAttribute('anim-stagger');
+    }
+    let childrens = element.querySelectorAll(children);
+    gsap.fromTo(
+      childrens,
+      { y: element.getAttribute('from-y') || '1rem', opacity: opacityValue || 0 },
+      {
+        duration: element.getAttribute('data-duration') || 1.2,
+        y: '0rem',
+        opacity: 1,
+        stagger: {
+          each: element.getAttribute('stagger-amount') || 0.25,
+          from: element.getAttribute('stagger-from') || 'start',
+        },
+        ease: element.getAttribute('data-easing') || 'power3.out',
+        scrollTrigger: {
+          trigger: element,
+          start: element.getAttribute('scrollTrigger-start') || 'top 95%',
+          markers: element.getAttribute('anim-markers') || false,
+        },
+        delay: element.getAttribute('data-delay') || 0.15,
+      }
+    );
+  }
+  function animateElement(element) {
+    let delay = element.getAttribute('data-delay');
+    let duration = element.getAttribute('data-duration');
+    let y = element.getAttribute('from-y');
+    let easing = element.getAttribute('data-easing');
+    easing = easing || 'power3.out';
+    delay = delay || 0;
+    duration = duration || 1.25;
+    y = y || '0';
+    gsap.fromTo(
+      element,
+      { y: y, opacity: 0 },
+      {
+        duration: duration,
+        y: '0%',
+        opacity: 1,
+        ease: easing,
+        scrollTrigger: element,
+        delay: delay,
+        clearProps: true,
+      }
+    );
+  }
+  document.querySelectorAll('[anim-element]').forEach((ele) => {
+    animateElement(ele);
+  });
+  // Count Up Animation
+  document.querySelectorAll('[count-up]').forEach((ele) => {
+    gsap.from(ele, {
+      textContent: 0, // start from 0
+      duration: 3,
+      snap: { textContent: 1 }, // increment by 1
+    });
+  });
+  //
+  gsap.from('.join-bg-decor', {
+    scale: 2,
+    rotation: 30,
+    duration: 2.5,
+    scrollTrigger: {
+      trigger: '.section.for-join',
+      scrub: 1.3,
+    },
+  });
+}
+
 // handle Global Code
 function handleGlobalCode() {
   // Mirror Click
@@ -119,11 +253,15 @@ function handlePricingTable() {
 
   const updateBillingText = (type) => {
     let planPeriodTexts = Array.from(pricingComponent.querySelectorAll('[plan-period]'));
-    planPeriodTexts.forEach((text) => (text.style.display = 'none'));
+    planPeriodTexts.forEach((text) => {
+      text.style.display = 'none';
+    });
     let selectedPeriod = planPeriodTexts.filter((item) => {
       return item.getAttribute('plan-period') == type;
     });
-    selectedPeriod.forEach((item) => (item.style.display = 'block'));
+    selectedPeriod.forEach((item) => {
+      item.style.display = 'block';
+    });
   };
 
   planTypeBtns.forEach((btn) => {
@@ -231,7 +369,7 @@ function handleSwiper() {
     });
 }
 // Clients Logo
-handleLogos();
+
 function handleLogos() {
   let timeout;
   let lastCol;
@@ -457,6 +595,7 @@ function handleBarba() {
 
 function init() {
   initializeScript();
+  handleGlobalAnimation();
   handleMenu();
   handleSwiper();
   handleAccordion();
@@ -464,6 +603,8 @@ function init() {
   handlePopup();
   handleCTAPopup();
   handleGlobalCode();
+  handleLoading();
+  handleLogos();
 }
 
 // Loading

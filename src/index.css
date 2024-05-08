@@ -4,3 +4,6 @@
 [swiper-progress-bar]{position: relative !important;}
 
 .swiper-button-disabled{opacity: 0.4; pointer-events: none;}
+
+
+[loading-anim]{opacity: 0;}
