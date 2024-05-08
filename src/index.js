@@ -176,7 +176,7 @@ function handleCTAPopup() {
     optionComponents[randomIndex].classList.add('active');
 
     setTimeout(() => {
-      ctaText.textContent = 'Did you make a mistake';
+      ctaText.textContent = 'Did you make a mistake?';
     }, 2000);
   });
 }
