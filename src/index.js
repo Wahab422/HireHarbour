@@ -68,7 +68,6 @@ function handleLoading() {
 //
 
 function handleGlobalAnimation() {
-  console.log('asdasdasdasdasdasdasd');
   // Animate Stagger Elements
   let staggerElements = document.querySelectorAll('[anim-stagger]');
   if (staggerElements.length > 0) {
@@ -161,6 +160,28 @@ function handleGlobalCode() {
       });
     });
   }
+  // Anchor links for the Article Rich Text
+  let articleRichText = document.querySelector('#blog-rich-text');
+  if (articleRichText) {
+    let richTextHeadings = articleRichText.querySelectorAll('h4');
+    let anchorLinkList = document.querySelector('#glance-anchor-list');
+    richTextHeadings.forEach((heading, index) => {
+      let headingText = heading.innerHTML;
+      heading.setAttribute('id', `heading${index + 1}`);
+      let anchorLink = document.createElement('a');
+      anchorLink.innerHTML = headingText;
+      anchorLink.href = `#heading${index + 1}`;
+      anchorLinkList.appendChild(anchorLink);
+      anchorLink.addEventListener('click', (e) => {
+        e.preventDefault();
+      });
+    });
+  }
+  let url = window.location.href;
+  if (url.includes('#')) {
+    let textAfterInclude = url.split('#')[1];
+    document.getElementById(textAfterInclude).scrollIntoView({ behavior: 'smooth' });
+  }
 }
 // handle CTA popup
 function handleCTAPopup() {
@@ -209,18 +230,28 @@ function handlePopup() {
     });
   });
 }
-function loadScript(url) {
+function loadScript(url, ele) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = url;
     script.onload = resolve;
     script.onerror = reject;
-    document.querySelector('[data-barba="container"]').appendChild(script);
+    if (ele === undefined) {
+      document.querySelector('[data-barba="container"]').appendChild(script);
+    } else {
+      if (document.querySelector(ele)) {
+        document.querySelector('[data-barba="container"]').appendChild(script);
+      }
+    }
   });
 }
 function initializeScript() {
   loadScript('https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsfilter@1/cmsfilter.js');
   loadScript('https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsload@1/cmsload.js');
+  loadScript(
+    'https://cdn.jsdelivr.net/npm/@finsweet/attributes-socialshare@1/socialshare.js',
+    '[fs-socialshare-element]'
+  );
 }
 // pricing table component
 function handlePricingTable() {
@@ -257,7 +288,7 @@ function handlePricingTable() {
       text.style.display = 'none';
     });
     let selectedPeriod = planPeriodTexts.filter((item) => {
-      return item.getAttribute('plan-period') == type;
+      return item.getAttribute('plan-period') === type;
     });
     selectedPeriod.forEach((item) => {
       item.style.display = 'block';
@@ -286,6 +317,43 @@ function handlePricingTable() {
   updatePrices(
     pricingComponent.querySelector('[planType-option].active').getAttribute('planType-option')
   );
+
+  // Show pricing based on location
+  // Function to get user's country
+  function getUserCountry() {
+    // Check if Geolocation is supported
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        // Get latitude and longitude
+        var { latitude } = position.coords;
+        var { longitude } = position.coords;
+
+        // Use latitude and longitude to get country using a reverse geocoding API
+        fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            var country = data.countryName;
+            if (
+              country === 'United Kingdom' ||
+              country === 'UK' ||
+              country === 'United Kingdom of Great Britain and Northern Ireland (the)'
+            ) {
+              document.querySelector('[currency-option="gbp"]').click();
+            } else {
+              document.querySelector('[currency-option="usd"]').click();
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching data:', error);
+          });
+      });
+    }
+  }
+
+  // Call the function when the page loads
+  window.onload = getUserCountry;
 }
 
 // handle Swiper Slider
@@ -450,7 +518,6 @@ function handleAccordion() {
       if (accordion.classList.contains('active')) {
         accordion.classList.remove('active');
       } else {
-        accordions.forEach((element) => element.classList.remove('active'));
         accordion.classList.add('active');
       }
     });
@@ -568,6 +635,7 @@ function handleBarba() {
         once(data) {
           gsap.to('body', { duration: 0.6, opacity: 1, ease: 'none' });
           animationEnter(data.next.container);
+          html.classList.add('ready');
         },
       },
     ],
@@ -585,10 +653,10 @@ function handleBarba() {
   });
 
   barba.hooks.after(() => {
+    html.classList.add('ready');
     window.scrollTo(0, 0);
     init();
     html.classList.remove('is-transitioning');
-    html.classList.add('ready');
     lenis.start();
   });
 }
