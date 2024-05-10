@@ -1,6 +1,5 @@
 import barba from '@barba/core';
 import barbaPrefetch from '@barba/prefetch';
-import { restartWebflow } from '@finsweet/ts-utils';
 import Lenis from '@studio-freight/lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -14,29 +13,48 @@ gsap.defaults({
 });
 let lenis;
 const html = document.documentElement;
+
+// Reset Form
+function resetForm() {
+  let formElements = document.querySelectorAll('form');
+  formElements.forEach((form) => {
+    let successMessage = form.nextElementSibling;
+    if ((successMessage.style.display = 'block')) {
+      setTimeout(() => {
+        successMessage.style.display = 'none';
+        form.style.display = 'flex';
+        form.reset(); // Reset the form fields including checkboxes
+        // Uncheck all checkboxes
+        form.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+          checkbox.checked = false;
+        });
+        // Remove class from checkbox
+        document.querySelectorAll('.w-checkbox').forEach((element) => {
+          element.classList.remove('w--redirected-checked');
+        });
+      }, 500);
+    }
+  });
+}
+// Reset Webflow
+function resetWebflow(data) {
+  let dom = $(new DOMParser().parseFromString(data.next.html, 'text/html')).find('html');
+  $('html').attr('data-wf-page', dom.attr('data-wf-page'));
+  window.Webflow && window.Webflow.destroy();
+  window.Webflow && window.Webflow.ready();
+  window.Webflow && window.Webflow.require('ix2').init();
+  // reset w--current class
+  $('.w--current').removeClass('w--current');
+  $('a').each(function () {
+    if ($(this).attr('href') === window.location.pathname) {
+      $(this).addClass('w--current');
+    }
+  });
+}
+//
 function handleLoading() {
   const loading = document.querySelector('.loader');
-  console.log(loading);
-  if (!loading) {
-    return;
-  }
-  function homeHeroAnim(delay) {
-    let heroAnimTL = gsap.timeline({ delay: delay });
-    heroAnimTL.fromTo(
-      '[loading-anim]',
-      {
-        y: '1rem',
-        opacity: 0,
-      },
-      {
-        y: '0rem',
-        opacity: 1,
-        stagger: 0.25,
-        duration: 1,
-      }
-    );
-    html.classList.add('ready');
-  }
+
   function playAnimation() {
     let lt = gsap.timeline();
     lt.from(loading.querySelector('[count-up-load]'), {
@@ -56,13 +74,13 @@ function handleLoading() {
     });
   }
 
-  if (!sessionStorage.getItem('visited')) {
+  if (loading && !sessionStorage.getItem('visited')) {
     loading.style.display = 'flex';
     sessionStorage.setItem('visited', 'true');
     playAnimation();
   } else {
-    loading.style.display = 'none';
     html.classList.add('ready');
+    // loading.style.display = 'none';
   }
 }
 //
@@ -232,6 +250,8 @@ function handlePopup() {
 
   popupCloseBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
+      console.log('close btn clicked');
+      resetForm();
       popupElements.forEach((popupElement) => {
         popupElement.classList.remove('active');
         document.body.classList.remove('stop-scroll');
@@ -653,7 +673,7 @@ function handleBarba() {
         once(data) {
           gsap.to('body', { duration: 0.6, opacity: 1, ease: 'none' });
           animationEnter(data.next.container);
-          handleLoading();
+
           // html.classList.add('ready');
         },
       },
@@ -664,24 +684,24 @@ function handleBarba() {
   barba.hooks.before(() => {
     html.classList.add('is-transitioning');
   });
-  barba.hooks.enter(async () => {
-    console.log('as');
+  barba.hooks.enter(async (data) => {
+    await resetWebflow(data);
   });
   barba.hooks.afterLeave(() => {
     html.classList.remove('ready');
   });
 
   barba.hooks.after(async () => {
-    await restartWebflow();
-    html.classList.add('ready');
     window.scrollTo(0, 0);
     init();
     html.classList.remove('is-transitioning');
+    html.classList.add('ready');
     lenis.start();
   });
 }
 
 function init() {
+  handleLoading();
   initializeScript();
   handleGlobalAnimation();
   handleMenu();
