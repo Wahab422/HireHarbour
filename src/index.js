@@ -177,11 +177,20 @@ function handleGlobalCode() {
       });
     });
   }
-  let url = window.location.href;
-  if (url.includes('#')) {
-    let textAfterInclude = url.split('#')[1];
-    document.getElementById(textAfterInclude).scrollIntoView({ behavior: 'smooth' });
-  }
+  setTimeout(() => {
+    let url = window.location.href;
+    if (url.includes('#')) {
+      let textAfterInclude = url.split('#')[1];
+      lenis.scrollTo(`#${textAfterInclude}`);
+    }
+  }, 1000);
+
+  // Back to Top
+  document.querySelectorAll('[back-to-top]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      lenis.scrollTo(0);
+    });
+  });
 }
 // handle CTA popup
 function handleCTAPopup() {
@@ -387,6 +396,10 @@ function handleSwiper() {
             el: '[testimonial-section] [swiper-progress-bar]',
             type: 'progressbar',
           },
+          navigation: {
+            nextEl: '[testimonial-section] [swiper-next-btn]',
+            prevEl: '[testimonial-section] [swiper-prev-btn]',
+          },
           breakpoints: {
             // when window width is >= 320px
             320: {
@@ -534,6 +547,11 @@ function handleMenu() {
   let nav = document.querySelector('.nav');
   menuBtn.addEventListener('click', function () {
     nav.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!nav.contains(e.target)) {
+      nav.classList.remove('open');
+    }
   });
   // Navbar Color change on Dark Sections
   handleNavColor();
