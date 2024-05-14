@@ -253,7 +253,6 @@ function handlePopup() {
 
   popupCloseBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
-      console.log('close btn clicked');
       resetForm();
       popupElements.forEach((popupElement) => {
         popupElement.classList.remove('active');
@@ -285,71 +284,67 @@ function initializeScript() {
     '[fs-socialshare-element]'
   );
 }
+
+function handleReloadScript() {
+  let reloadScripts = document.querySelectorAll('[reload-script]');
+  reloadScripts.forEach((reloadScript) => {
+    let scriptInnerContent = reloadScript.innerHTML;
+    let script = document.createElement('script');
+    script.innerHTML = scriptInnerContent;
+    reloadScript.parentElement.parentElement.appendChild(script);
+    reloadScript.remove();
+  });
+}
 // pricing table component
 function handlePricingTable() {
-  let pricingComponent = document.querySelector('[pricing-component]');
-  if (!pricingComponent) return;
-  let currencyBtns = pricingComponent.querySelectorAll('[currency-option]');
-  let planTypeBtns = pricingComponent.querySelectorAll('[planType-option]');
-  const plans = Object.keys(pricingData.monthly);
-
-  const updatePrices = (type) => {
-    const activeCurrency = pricingComponent.querySelector('[currency-option].active');
-    const currencyValue = activeCurrency ? activeCurrency.getAttribute('currency-option') : 'gbp';
-    plans.forEach((plan) => {
-      pricingComponent.querySelector(`[${plan}price]`).innerText = getPrice(
-        plan,
-        currencyValue,
-        type
-      );
-      updateBillingText(type);
+  let pricingComponents = document.querySelectorAll('[pricingComponent]');
+  if (pricingComponents.length < 1) return;
+  pricingComponents.forEach((component) => {
+    let currencySwitchBtns = component.querySelectorAll('[currencySwitch]');
+    let pricingSwitchBtns = component.querySelectorAll('[pricingSwitch]');
+    let pricingObjectName = component.getAttribute('pricingData');
+    let pricingObject = eval(pricingObjectName);
+    const plans = Object.keys(pricingObject.monthly);
+    const updatePrices = (type) => {
+      const activeCurrency = component.querySelector('[currencySwitch].active');
+      const currencyValue = activeCurrency ? activeCurrency.getAttribute('currencySwitch') : 'gbp';
+      updatePricingText(type);
+      plans.forEach((plan) => {
+        component.querySelector(`[planPrice = "${plan}"]`).innerText = getPrice(
+          plan,
+          currencyValue,
+          type
+        );
+      });
+    };
+    const getPrice = (plan, currency, type) => {
+      const price = pricingObject[type][plan][currency];
+      return `${pricingObject.currency[currency]}${price}`;
+    };
+    const updatePricingText = (type) => {
+      component.querySelectorAll(`[perPeriodText]`).forEach((text) => {
+        text.innerHTML = document.querySelector(`[${type}Text]`).getAttribute(`${type}Text`);
+      });
+    };
+    pricingSwitchBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        pricingSwitchBtns.forEach((btn) => btn.classList.remove('active'));
+        btn.classList.add('active');
+        let selectedPlanType = btn.getAttribute('pricingSwitch');
+        updatePrices(selectedPlanType);
+      });
     });
-  };
-
-  const getPrice = (plan, currency, type) => {
-    // const key = type === 'monthly' ? 'monthly' : 'annually';
-    const price = pricingData[type][plan][currency];
-    return currency === 'inr'
-      ? `${pricingData.currency[currency]}${price.toLocaleString('en-IN')}`
-      : `${pricingData.currency[currency]}${price}`;
-  };
-
-  const updateBillingText = (type) => {
-    let planPeriodTexts = Array.from(pricingComponent.querySelectorAll('[plan-period]'));
-    planPeriodTexts.forEach((text) => {
-      text.style.display = 'none';
+    currencySwitchBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currencySwitchBtns.forEach((btn) => btn.classList.remove('active'));
+        btn.classList.add('active');
+        updatePrices(
+          component.querySelector('[pricingSwitch].active').getAttribute('pricingSwitch')
+        );
+      });
     });
-    let selectedPeriod = planPeriodTexts.filter((item) => {
-      return item.getAttribute('plan-period') === type;
-    });
-    selectedPeriod.forEach((item) => {
-      item.style.display = 'block';
-    });
-  };
-
-  planTypeBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      planTypeBtns.forEach((btn) => btn.classList.remove('active'));
-      btn.classList.add('active');
-      let selectedPlanType = btn.getAttribute('planType-option');
-      updatePrices(selectedPlanType);
-    });
+    updatePrices(component.querySelector('[pricingSwitch].active').getAttribute('pricingSwitch'));
   });
-
-  currencyBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      currencyBtns.forEach((btn) => btn.classList.remove('active'));
-      btn.classList.add('active');
-      updatePrices(
-        pricingComponent.querySelector('[planType-option].active').getAttribute('planType-option')
-      );
-    });
-  });
-  // Initial update
-  updatePrices(
-    pricingComponent.querySelector('[planType-option].active').getAttribute('planType-option')
-  );
-
   // Show pricing based on location
   // Function to get user's country
   function getUserCountry() {
@@ -676,8 +671,6 @@ function handleBarba() {
         once(data) {
           gsap.to('body', { duration: 0.6, opacity: 1, ease: 'none' });
           animationEnter(data.next.container);
-
-          // html.classList.add('ready');
         },
       },
     ],
@@ -685,37 +678,37 @@ function handleBarba() {
 
   // Hooks
   barba.hooks.before(() => {
-    html.classList.add('is-transitioning');
+    lenis.destroy();
   });
-  barba.hooks.enter(async (data) => {
-    await resetWebflow(data);
+  barba.hooks.enter((data) => {
+    resetWebflow(data);
   });
   barba.hooks.afterLeave(() => {
     html.classList.remove('ready');
   });
 
-  barba.hooks.after(async () => {
+  barba.hooks.after(() => {
     window.scrollTo(0, 0);
-    init();
-    html.classList.remove('is-transitioning');
     html.classList.add('ready');
     lenis.start();
+    init();
   });
 }
 
 function init() {
   handleLoading();
+  handleReloadScript();
   initializeScript();
   handleGlobalAnimation();
   handleMenu();
   handleSwiper();
   handleAccordion();
-  handlePricingTable();
-  handlePopup();
-  handleCTAPopup();
   handleGlobalCode();
   handleLogos();
   resizeLenis();
+  handlePopup();
+  handleCTAPopup();
+  handlePricingTable();
 }
 
 // Loading
