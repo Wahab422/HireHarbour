@@ -74,13 +74,16 @@ function handleLoading() {
     });
   }
 
-  if (loading && !sessionStorage.getItem('visited')) {
-    loading.style.display = 'flex';
+  if (!sessionStorage.getItem('visited')) {
+    if (loading) {
+      loading.style.display = 'flex';
+      playAnimation();
+    } else {
+      html.classList.add('ready');
+    }
     sessionStorage.setItem('visited', 'true');
-    playAnimation();
   } else {
     html.classList.add('ready');
-    // loading.style.display = 'none';
   }
 }
 //
@@ -712,6 +715,7 @@ function init() {
   handleCTAPopup();
   handleGlobalCode();
   handleLogos();
+  resizeLenis();
 }
 
 // Loading
