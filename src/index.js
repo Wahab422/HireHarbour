@@ -1,5 +1,6 @@
 import barba from '@barba/core';
 import barbaPrefetch from '@barba/prefetch';
+import { restartWebflow } from '@finsweet/ts-utils';
 import Lenis from '@studio-freight/lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -289,10 +290,12 @@ function handleReloadScript() {
   let reloadScripts = document.querySelectorAll('[reload-script]');
   reloadScripts.forEach((reloadScript) => {
     let scriptInnerContent = reloadScript.innerHTML;
+    let scriptWrapper = reloadScript.parentElement;
+    reloadScript.remove();
     let script = document.createElement('script');
     script.innerHTML = scriptInnerContent;
-    reloadScript.parentElement.parentElement.appendChild(script);
-    reloadScript.remove();
+    script.setAttribute('reload-script', '');
+    scriptWrapper.appendChild(script);
   });
 }
 // pricing table component
