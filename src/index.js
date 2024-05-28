@@ -1,6 +1,5 @@
 import barba from '@barba/core';
 import barbaPrefetch from '@barba/prefetch';
-import { restartWebflow } from '@finsweet/ts-utils';
 import Lenis from '@studio-freight/lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
