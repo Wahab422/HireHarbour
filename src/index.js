@@ -672,7 +672,7 @@ function handleBarba() {
         },
         once(data) {
           gsap.to('body', { duration: 0.6, opacity: 1, ease: 'none' });
-          animationEnter(data.next.container);
+          // animationEnter(data.next.container);
         },
       },
     ],
@@ -698,7 +698,7 @@ function handleBarba() {
 }
 
 function init() {
-  handleLoading();
+  // handleLoading();
   handleReloadScript();
   initializeScript();
   handleGlobalAnimation();
@@ -715,6 +715,7 @@ function init() {
 
 // Loading
 document.addEventListener('DOMContentLoaded', () => {
+  html.classList.add('ready');
   if (Webflow.env('editor') === undefined) {
     handleBarba();
     handleScroll();
